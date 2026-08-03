@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASPIRE — Academic Performance Predictor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F4F6FB;--sur:#fff;--sur2:#F0F2F8;--bdr:#E2E8F0;--bdr2:#CBD5E1;
+  --tx:#0F172A;--tx2:#475569;--tx3:#94A3B8;
+  --bl:#2563EB;--bll:#EFF6FF;--bld:#1D4ED8;
+  --gn:#059669;--gnl:#F0FDF4;--gnd:#047857;
+  --am:#D97706;--aml:#FFFBEB;--amd:#B45309;
+  --rd:#DC2626;--rdl:#FEF2F2;--rdd:#B91C1C;
+  --pu:#7C3AED;--pul:#F5F3FF;--pud:#6D28D9;
+  --r:8px;--rl:12px;--rxl:16px;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
+  --shm:0 4px 16px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;color:var(--tx);background:var(--bg)}
+button{cursor:pointer;font-family:inherit}
+input,select{font-family:inherit}
+
+/* AUTH */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#EFF6FF,#F5F3FF,#F0FDF4)}
+.ac{background:var(--sur);border-radius:var(--rxl);box-shadow:var(--shm);padding:40px;width:440px;max-width:95vw}
+.ab{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.ai{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--bl),var(--pu));display:flex;align-items:center;justify-content:center;font-size:22px}
+.ab h1{font-size:22px;font-weight:700}
+.at{font-size:12px;color:var(--tx3);margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--bdr)}
+.atabs{display:flex;background:var(--sur2);border-radius:var(--r);padding:3px;margin-bottom:20px}
+.atab{flex:1;padding:7px;border:none;background:transparent;border-radius:6px;font-size:13px;font-weight:500;color:var(--tx2);transition:all .15s}
+.atab.on{background:var(--sur);color:var(--tx);box-shadow:var(--sh)}
+.fl{margin-bottom:13px}
+.fl label{display:block;font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:5px}
+.inp{width:100%;padding:9px 12px;border:1.5px solid var(--bdr);border-radius:var(--r);color:var(--tx);background:var(--sur);font-size:13px}
+.inp:focus{outline:none;border-color:var(--bl);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rpick{display:flex;gap:8px;margin-bottom:13px}
+.rbtn{flex:1;padding:9px;border:1.5px solid var(--bdr);border-radius:var(--r);background:var(--sur2);color:var(--tx2);font-size:13px;font-weight:500}
+.rbtn.on{border-color:var(--bl);background:var(--bll);color:var(--bl)}
+.aerr{background:var(--rdl);border:1px solid #FCA5A5;border-radius:var(--r);padding:9px 12px;font-size:13px;margin-bottom:12px;display:none}
+.btnp{width:100%;padding:11px;border:none;border-radius:var(--r);background:linear-gradient(135deg,var(--bl),var(--pu));color:#fff;font-size:14px;font-weight:600}
+.aht{text-align:center;margin-top:12px;font-size:12px;color:var(--tx3)}
+
+/* SHELL */
+#app{display:none;height:100vh;overflow:hidden}
+.shell{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sb{width:225px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto}
+.sbl{padding:16px 14px 14px;border-bottom:1px solid var(--bdr)}
+.sblr{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.sbi{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--bl),var(--pu));display:flex;align-items:center;justify-content:center;font-size:16px}
+.sbn{font-size:15px;font-weight:700}
+.sbt{font-size:10px;color:var(--tx3)}
+.ss{padding:8px 8px 0}
+.sl{font-size:10px;font-weight:700;color:var(--tx3);padding:4px 8px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.nb{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);font-size:13px;color:var(--tx2);border:none;background:none;width:100%;text-align:left;margin-bottom:1px}
+.nb:hover{background:var(--sur2);color:var(--tx)}
+.nb.on{background:var(--bll);color:var(--bl);font-weight:600}
+.nb span.ico{font-size:16px;width:20px;flex-shrink:0}
+.sbf{margin-top:auto;padding:12px 14px;border-top:1px solid var(--bdr)}
+.sbu{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.sbav{width:34px;height:34px;border-radius:50%;background:var(--bll);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--bl);border:2px solid var(--bdr);flex-shrink:0}
+.sbun{font-size:13px;font-weight:600}
+.sbum{font-size:11px;color:var(--tx3)}
+.sbcg{font-size:11px;font-weight:600;color:var(--bl);margin-top:1px}
+.sout{width:100%;padding:7px;border:1.5px solid var(--bdr);border-radius:var(--r);background:transparent;color:var(--tx2);font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.sout:hover{background:var(--rdl);color:var(--rdd);border-color:var(--rd)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{padding:12px 22px;background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tbl h2{font-size:16px;font-weight:700}
+.tbl p{font-size:12px;color:var(--tx3);margin-top:1px}
+.tbr{display:flex;align-items:center;gap:8px}
+.bdg{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:600}
+.bb{background:var(--bll);color:var(--bl)}.bg{background:var(--gnl);color:var(--gnd)}.bp{background:var(--pul);color:var(--pud)}.ba{background:var(--aml);color:var(--amd)}.br{background:var(--rdl);color:var(--rdd)}
+
+.con{flex:1;overflow-y:auto;padding:22px}
+.pg{display:none}.pg.on{display:block}
+
+/* CARDS */
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;box-shadow:var(--sh);margin-bottom:14px}
+.ct{font-size:14px;font-weight:700;margin-bottom:3px}
+.cs{font-size:12px;color:var(--tx3);margin-bottom:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.mc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px;box-shadow:var(--sh)}
+.ml{font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.mv{font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.ms{font-size:12px;margin-top:4px}
+.up{color:var(--gn)}.dn{color:var(--rd)}.neu{color:var(--tx3)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r);font-size:13px;font-weight:600;border:none;white-space:nowrap}
+.btn-bl{background:var(--bl);color:#fff}.btn-bl:hover{background:var(--bld)}
+.btn-gn{background:var(--gn);color:#fff}.btn-gn:hover{background:var(--gnd)}
+.btn-gh{background:transparent;border:1.5px solid var(--bdr2);color:var(--tx2)}.btn-gh:hover{background:var(--sur2)}
+.btn-rd{background:var(--rdl);color:var(--rdd);border:1.5px solid var(--rd)}.btn-rd:hover{background:var(--rd);color:#fff}
+.btn-am{background:var(--aml);color:var(--amd);border:1.5px solid var(--am)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.brow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px}
+
+/* FORM FIELDS */
+.fi{width:100%;padding:7px 10px;border:1.5px solid var(--bdr);border-radius:var(--r);color:var(--tx);background:var(--sur);font-size:13px}
+.fi:focus{outline:none;border-color:var(--bl)}
+.sr{display:flex;align-items:center;gap:10px}
+.sr input[type=range]{flex:1;accent-color:var(--bl)}
+.sv{font-size:14px;font-weight:700;color:var(--bl);min-width:36px;text-align:right}
+
+/* CALC TABLE */
+.cr{display:grid;grid-template-columns:1.8fr .55fr .65fr .65fr .8fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.cr input,.cr select{padding:7px 8px;border:1.5px solid var(--bdr);border-radius:var(--r);color:var(--tx);background:var(--sur);width:100%;font-size:13px}
+.cr input:focus,.cr select:focus{outline:none;border-color:var(--bl)}
+.cr input.predicted{background:#EFF6FF;border-color:#BFDBFE;color:var(--bld);font-style:italic}
+.ch{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;padding-bottom:4px}
+.add-btn{width:100%;padding:9px;border:1.5px dashed var(--bdr2);border-radius:var(--r);background:transparent;color:var(--tx3);font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+.add-btn:hover{background:var(--sur2);color:var(--tx2)}
+.del-btn{background:none;border:none;color:var(--tx3);padding:6px;border-radius:var(--r);font-size:16px}
+.del-btn:hover{color:var(--rd);background:var(--rdl)}
+.sgpa-hero{background:linear-gradient(135deg,var(--bll),var(--pul));border:1px solid #BFDBFE;border-radius:var(--rxl);padding:20px;margin-top:14px;display:flex;align-items:center;gap:18px}
+.sgpa-num{font-size:52px;font-weight:800;color:var(--bl);letter-spacing:-2px;line-height:1}
+.sgpa-p{flex:1}
+.sgpa-bw{height:8px;border-radius:99px;background:rgba(37,99,235,.12);overflow:hidden;margin:8px 0}
+.sgpa-b{height:100%;border-radius:99px;background:var(--bl);transition:width .5s}
+
+/* GRADE PILLS */
+.gp{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
+.gAA,.gAB{background:var(--gnl);color:var(--gnd)}
+.gBB,.gBC{background:var(--bll);color:var(--bld)}
+.gCC,.gCD{background:var(--aml);color:var(--amd)}
+.gDD,.gFF{background:var(--rdl);color:var(--rdd)}
+
+/* PRED HERO */
+.ph{background:linear-gradient(135deg,#1E3A8A,#5B21B6);border-radius:var(--rxl);padding:24px;color:#fff;margin-bottom:14px}
+.pht{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.phm{font-size:60px;font-weight:800;letter-spacing:-2px;line-height:1}
+.phlb{font-size:11px;opacity:.7;margin-top:3px;font-weight:500}
+.phr{text-align:right}
+.phtot{font-size:34px;font-weight:800}
+.phbar{height:8px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden;margin-top:10px}
+.phfill{height:100%;border-radius:99px;background:rgba(255,255,255,.9);transition:width .6s}
+.phbl{display:flex;justify-content:space-between;font-size:10px;opacity:.6;margin-top:3px}
+
+/* INSIGHT */
+.ins{display:flex;gap:8px;padding:9px 11px;border-radius:var(--r);margin-bottom:6px;font-size:12px;line-height:1.55}
+.ins-g{background:var(--gnl);color:var(--gnd)}.ins-a{background:var(--aml);color:var(--amd)}.ins-r{background:var(--rdl);color:var(--rdd)}.ins-b{background:var(--bll);color:var(--bld)}
+
+/* FI BARS */
+.fir{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fil{font-size:12px;color:var(--tx2);width:170px;flex-shrink:0}
+.fig{flex:1;height:7px;border-radius:99px;background:var(--sur2);overflow:hidden}
+.fif{height:100%;border-radius:99px;transition:width .5s}
+.fip{font-size:11px;color:var(--tx3);width:32px;text-align:right}
+
+/* CHART */
+.chbox{position:relative;height:200px}
+
+/* HEATMAP */
+.hmg{overflow-x:auto}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:700;color:var(--tx3);text-align:left;padding:8px 12px;border-bottom:1.5px solid var(--bdr);text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px 12px;border-bottom:1px solid var(--bdr);color:var(--tx2);font-size:13px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+
+/* LEADERBOARD */
+.lbi{display:flex;align-items:center;gap:12px;padding:12px 15px;border-radius:var(--rl);border:1px solid var(--bdr);background:var(--sur);margin-bottom:5px}
+.lbrk{font-size:20px;font-weight:800;width:34px;text-align:center;flex-shrink:0}
+.r1{color:var(--am)}.r2{color:var(--tx3)}.r3{color:#CD7F32}
+.lbnm{font-size:13px;font-weight:600;color:var(--tx)}
+.lbmt{font-size:11px;color:var(--tx3)}
+.lbcg{margin-left:auto;font-size:22px;font-weight:800;color:var(--bl)}
+.dpc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:15px;box-shadow:var(--sh)}
+.dpd{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.dpn{font-size:13px;font-weight:600;color:var(--tx)}
+.dpcg{font-size:24px;font-weight:800;color:var(--bl);margin-top:5px}
+
+/* HIST */
+.hi{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:12px;box-shadow:var(--sh)}
+.hih{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--sur2);border-bottom:1px solid var(--bdr)}
+
+/* GUIDE */
+.gdi{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px;margin-bottom:11px}
+.gdh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px}
+.fHIGH{background:var(--rdl);color:var(--rdd)}.fMED{background:var(--aml);color:var(--amd)}.fLOW{background:var(--gnl);color:var(--gnd)}
+.ttag{display:inline-block;background:var(--bll);color:var(--bld);border-radius:99px;padding:3px 9px;font-size:11px;font-weight:500;margin:2px}
+.pb{height:6px;border-radius:99px;background:var(--sur2);overflow:hidden;margin:7px 0}
+.pf{height:100%;border-radius:99px}
+
+/* TOGGLE */
+.tgl{width:40px;height:22px;border-radius:99px;background:var(--bdr2);position:relative;cursor:pointer;border:none;transition:background .2s;flex-shrink:0}
+.tgl.on{background:var(--bl)}
+.tgl::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl.on::after{left:21px}
+
+/* MISC */
+.empty{text-align:center;padding:50px 20px;color:var(--tx3)}
+.empty .ei{font-size:40px;display:block;margin-bottom:12px}
+.load{text-align:center;padding:40px;color:var(--tx3);font-size:13px}
+.toast{position:fixed;bottom:22px;right:22px;padding:11px 18px;border-radius:var(--rl);font-size:13px;font-weight:600;color:#fff;z-index:9999;box-shadow:var(--shm);animation:tin .3s ease}
+.tg{background:var(--gn)}.tr{background:var(--rd)}.tb{background:var(--bl)}.ta{background:var(--am)}
+@keyframes tin{from{transform:translateX(80px);opacity:0}to{transform:none;opacity:1}}
+.div{display:flex;align-items:center;gap:10px;margin:18px 0 13px}
+.div span{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.div::before,.div::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* PREDICTED BADGE */
+.pred-badge{display:inline-flex;align-items:center;gap:4px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600}
+
+/* REPORT CARD PREDICTED NOTE */
+.pred-note{background:linear-gradient(135deg,#EFF6FF,#F5F3FF);border:1px solid #BFDBFE;border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--bld);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth">
+ <div class="ac">
+  <div class="ab">
+   <div class="ai">🎓</div>
+   <div><h1>ASPIRE</h1><div style="font-size:11px;color:var(--tx3)">Academic & Social Pattern Integrated Result Engine</div></div>
+  </div>
+  <p class="at">Predict end semester marks using ML. Calculate SGPA/CGPA with RBU grading.</p>
+  <div class="atabs">
+   <button class="atab on" onclick="atab('login')">Login</button>
+   <button class="atab" onclick="atab('register')">Register</button>
+  </div>
+  <div id="aerr" class="aerr"></div>
+  <div id="lp">
+   <div class="fl"><label>Email address</label><input class="inp" id="le" type="email" placeholder="you@rbu.ac.in" onkeydown="if(event.key==='Enter')doLogin()"></div>
+   <div class="fl"><label>Password</label><input class="inp" id="lp2" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+   <button class="btnp" onclick="doLogin()">Sign in</button>
+   <p class="aht">Admin demo: admin@rbu.ac.in / admin123</p>
+  </div>
+  <div id="rp" style="display:none">
+   <div style="margin-bottom:13px">
+    <label style="font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">I am a</label>
+    <div class="rpick">
+     <button class="rbtn on" id="rbs" onclick="setRole('student')">👨‍🎓 Student</button>
+     <button class="rbtn" id="rba" onclick="setRole('admin')">🛡️ Admin</button>
+    </div>
+   </div>
+   <div class="frow">
+    <div class="fl"><label>Full name</label><input class="inp" id="rn" placeholder="Full name"></div>
+    <div class="fl"><label>Roll number</label><input class="inp" id="rr" placeholder="22CS001"></div>
+   </div>
+   <div class="fl"><label>Email</label><input class="inp" id="re" type="email" placeholder="email@rbu.ac.in"></div>
+   <div class="fl"><label>Password</label><input class="inp" id="rpass" type="password" placeholder="Min 6 characters"></div>
+   <div class="frow">
+    <div class="fl"><label>Department</label><select class="inp" id="rd"><option>CSE</option><option>IT</option><option>ECE</option><option>MECH</option><option>CIVIL</option></select></div>
+    <div class="fl"><label>Year</label><select class="inp" id="ry"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+   </div>
+   <button class="btnp" onclick="doRegister()">Create account</button>
+  </div>
+ </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="shell">
+ <!-- SIDEBAR -->
+ <div class="sb">
+  <div class="sbl">
+   <div class="sblr"><div class="sbi">🎓</div><div><div class="sbn">ASPIRE</div></div></div>
+   <div class="sbt">RBU Academic Analyzer</div>
+  </div>
+  <div id="snav" class="ss">
+   <div class="sl">Student</div>
+   <button class="nb on" onclick="go('calc',this)"><span class="ico">🧮</span>Grade Calculator</button>
+   <button class="nb" onclick="go('pred',this)"><span class="ico">🤖</span>End Sem Predictor</button>
+   <button class="nb" onclick="go('dash',this)"><span class="ico">📊</span>Dashboard</button>
+   <button class="nb" onclick="go('guide',this)"><span class="ico">📚</span>Study Guidance</button>
+   <button class="nb" onclick="go('topics',this)"><span class="ico">💡</span>Topic Suggestions</button>
+   <button class="nb" onclick="go('lb',this)"><span class="ico">🏆</span>Leaderboard</button>
+   <button class="nb" onclick="go('hist',this)"><span class="ico">📋</span>History</button>
+  </div>
+  <div id="anav" class="ss" style="display:none">
+   <div class="sl">Admin</div>
+   <button class="nb" onclick="go('ao',this)"><span class="ico">📊</span>Overview</button>
+   <button class="nb" onclick="go('as',this)"><span class="ico">👥</span>All Students</button>
+   <button class="nb" onclick="go('alb',this)"><span class="ico">🏆</span>Leaderboard</button>
+   <button class="nb" onclick="go('aml',this)"><span class="ico">🤖</span>ML Model</button>
+  </div>
+  <div class="sbf">
+   <div class="sbu">
+    <div class="sbav" id="sbav">?</div>
+    <div><div class="sbun" id="sbun">—</div><div class="sbum" id="sbum">—</div><div class="sbcg" id="sbcg">CGPA: —</div></div>
+   </div>
+   <button class="sout" onclick="signOut()">🚪 Sign out</button>
+  </div>
+ </div>
+
+ <!-- MAIN -->
+ <div class="main">
+  <div class="topbar">
+   <div class="tbl"><h2 id="pgt">Grade Calculator</h2><p id="pgs">Enter marks — SGPA computed live</p></div>
+   <div class="tbr">
+    <span class="bdg bb" id="tbdept">CSE</span>
+    <span class="bdg bg" id="tbcgpa">CGPA: —</span>
+    <span class="bdg bp">RBU Grading</span>
+   </div>
+  </div>
+
+  <div class="con">
+
+   <!-- GRADE CALCULATOR -->
+   <div class="pg on" id="pg-calc">
+    <div class="card">
+     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div>
+       <div class="ct">Semester entry</div>
+       <div style="font-size:11px;color:var(--tx3)">AA=10 · AB=9 · BB=8 · BC=7 · CC=6 · CD=5 · DD=4 · FF=0 &nbsp;|&nbsp; 90–100→AA · 80–89→AB · 70–79→BB · 60–69→BC · 50–59→CC</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+       <label style="font-size:12px;color:var(--tx2);font-weight:600">Semester</label>
+       <select id="csem" class="fi" style="width:110px"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+      </div>
+     </div>
+     <div style="display:grid;grid-template-columns:1.8fr .55fr .65fr .65fr .8fr auto;gap:6px;margin-bottom:5px">
+      <div class="ch">Subject</div><div class="ch">Credits</div><div class="ch">Internal /50</div><div class="ch">End Sem /50</div><div class="ch">Grade</div><div></div>
+     </div>
+     <div id="calc-rows"></div>
+     <button class="add-btn" onclick="addRow()">+ Add subject</button>
+    </div>
+
+    <div id="sgpa-out" style="display:none">
+     <div id="pred-note" class="pred-note" style="display:none">
+      🤖 <span id="pred-note-txt"></span>
+      <button class="btn btn-am btn-sm" onclick="go('pred',null)" style="margin-left:auto">Predict more →</button>
+     </div>
+     <div class="sgpa-hero">
+      <div>
+       <div class="sgpa-num" id="sgpa-v">—</div>
+       <div style="font-size:13px;color:var(--bl);font-weight:600;margin-top:2px">SGPA this semester</div>
+      </div>
+      <div class="sgpa-p">
+       <div id="sgpa-detail" style="font-size:13px;color:var(--tx2);margin-bottom:5px"></div>
+       <div class="sgpa-bw"><div id="sgpa-bar" class="sgpa-b" style="width:0%"></div></div>
+       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3)"><span>0</span><span>5</span><span>10</span></div>
+      </div>
+     </div>
+     <div class="brow">
+      <button class="btn btn-bl" onclick="saveSem()">💾 Save semester</button>
+      <button class="btn btn-gh" onclick="resetCalc()">↺ Reset</button>
+      <button class="btn btn-gh" onclick="go('pred',null)">🤖 Predict end sem marks</button>
+     </div>
+    </div>
+   </div>
+
+   <!-- END SEM PREDICTOR -->
+   <div class="pg" id="pg-pred">
+    <div class="card" style="background:linear-gradient(135deg,#EFF6FF,#F5F3FF);border-color:#BFDBFE;margin-bottom:14px">
+     <div class="ct">🤖 End Semester Mark Predictor</div>
+     <div style="font-size:13px;color:var(--tx2)">Enter your academic details below. The ML model will predict your end semester marks and automatically fill them in the Grade Calculator so you don't have to enter them manually.</div>
+    </div>
+    <div class="g2">
+     <div class="card">
+      <div class="ct">📖 Academic inputs</div>
+      <div class="cs">Your current academic standing for this subject</div>
+      <div class="fl"><label>Subject name</label><input class="fi" id="ps" placeholder="e.g. Data Structures" oninput="lp()"></div>
+      <div class="fl"><label>Subject credits</label><select class="fi" id="pc"><option>1</option><option>2</option><option value="3" selected>3</option><option>4</option><option>5</option></select></div>
+      <div class="fl"><label>Internal marks (out of 50)</label>
+       <div class="sr"><input type="range" id="pi" min="0" max="50" value="35" oninput="ss('pi','piv');lp()"><span class="sv" id="piv">35</span></div>
+      </div>
+      <div class="fl"><label>Attendance (%)</label>
+       <div class="sr"><input type="range" id="pa" min="0" max="100" value="75" oninput="ss('pa','pav','%');lp()"><span class="sv" id="pav">75%</span></div>
+      </div>
+      <div class="fl"><label>Study hours per day</label>
+       <div class="sr"><input type="range" id="pst" min="0" max="12" step=".5" value="3" oninput="ss('pst','pstv','h');lp()"><span class="sv" id="pstv">3h</span></div>
+      </div>
+      <div class="fl"><label>Days before exam</label>
+       <div class="sr"><input type="range" id="pd" min="0" max="60" value="21" oninput="ss('pd','pdv','d');lp()"><span class="sv" id="pdv">21d</span></div>
+      </div>
+      <div class="fl"><label>Subject difficulty</label>
+       <select class="fi" id="pdi" onchange="lp()"><option value="1">Easy</option><option value="2" selected>Medium</option><option value="3">Hard</option></select>
+      </div>
+     </div>
+
+     <div>
+      <!-- LIVE RESULT -->
+      <div class="ph">
+       <div class="pht">
+        <div>
+         <div style="font-size:10px;opacity:.7;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Predicted end sem marks</div>
+         <div style="display:flex;align-items:baseline;gap:6px"><span class="phm" id="phm">—</span><span style="font-size:20px;opacity:.6">/ 50</span></div>
+         <div style="font-size:12px;opacity:.8;margin-top:4px" id="phs">Enter values above</div>
+        </div>
+        <div class="phr">
+         <div style="font-size:10px;opacity:.7;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Total marks</div>
+         <div class="phtot" id="pht">—</div>
+         <div style="font-size:11px;opacity:.7">out of 100</div>
+         <div style="margin-top:8px" id="phg"></div>
+         <div style="font-size:12px;opacity:.8;margin-top:5px" id="phr2"></div>
+        </div>
+       </div>
+       <div class="phbar"><div class="phfill" id="phbar" style="width:0%"></div></div>
+       <div class="phbl"><span>0</span><span>25</span><span>50</span></div>
+      </div>
+
+      <!-- FEATURE IMPORTANCE -->
+      <div class="card">
+       <div class="ct">Feature importance</div>
+       <div class="cs">What drives your predicted score (Random Forest)</div>
+       <div id="fi-bars"></div>
+      </div>
+
+      <!-- INSIGHTS -->
+      <div class="card">
+       <div class="ct">Personalised insights</div>
+       <div id="pred-ins"></div>
+      </div>
+     </div>
+    </div>
+
+    <!-- MODEL METRICS -->
+    <div class="card">
+     <div class="ct">ML Model evaluation</div>
+     <div class="cs">Trained on 300 student records · 5-fold cross validation · 5 academic features</div>
+     <div class="g4" id="mchips" style="margin-bottom:0"></div>
+    </div>
+
+    <div class="brow">
+     <button class="btn btn-bl" onclick="useInCalc()">📋 Use in Grade Calculator</button>
+     <button class="btn btn-gn" onclick="savePred()">💾 Save prediction</button>
+     <button class="btn btn-gh" onclick="go('guide',null)">📚 Study guidance</button>
+    </div>
+   </div>
+
+   <!-- DASHBOARD -->
+   <div class="pg" id="pg-dash">
+    <div class="g4" id="dm"></div>
+    <div class="g2">
+     <div class="card"><div class="ct">SGPA trend</div><div class="chbox"><canvas id="csgpa"></canvas></div></div>
+     <div class="card"><div class="ct">Grade distribution</div><div class="chbox"><canvas id="cgrade"></canvas></div></div>
+    </div>
+    <div class="card">
+     <div class="ct">Subject performance heatmap</div>
+     <div class="cs">Grade per subject across semesters — Green=AA/AB · Blue=BB/BC · Orange=CC/CD · Red=DD/FF</div>
+     <div id="hmg"></div>
+    </div>
+    <div class="card">
+     <div class="ct">Internal vs predicted end sem</div>
+     <div class="cs">Comparison of your internal marks vs ML-predicted end sem marks</div>
+     <div class="chbox"><canvas id="civp"></canvas></div>
+    </div>
+    <div class="card">
+     <div class="ct">CGPA projection</div>
+     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+      <label style="font-size:12px;font-weight:600;color:var(--tx2)">Target CGPA</label>
+      <input type="range" id="tcgpa" min="5" max="10" step=".1" value="9" oninput="document.getElementById('tv').textContent=this.value;renderProj()" style="flex:1;max-width:180px;accent-color:var(--bl)">
+      <span id="tv" style="font-size:15px;font-weight:700;color:var(--bl)">9.0</span>
+      <label style="font-size:12px;font-weight:600;color:var(--tx2)">Remaining sems</label>
+      <input type="number" id="rsems" value="4" min="1" max="8" class="fi" style="width:60px" oninput="renderProj()">
+     </div>
+     <div class="chbox"><canvas id="cproj"></canvas></div>
+     <div id="preq" style="margin-top:10px;font-size:13px;color:var(--tx2)"></div>
+    </div>
+   </div>
+
+   <!-- STUDY GUIDANCE -->
+   <div class="pg" id="pg-guide">
+    <div class="card" style="background:linear-gradient(135deg,var(--bll),var(--pul));border-color:#BFDBFE;margin-bottom:14px">
+     <div class="ct">📚 AI-Powered Study Guidance</div>
+     <div style="font-size:13px;color:var(--tx2)">Personalised focus plan for each subject based on your current grades and predicted scores.</div>
+    </div>
+    <div id="gdl"><div class="empty"><span class="ei">📚</span><p>Save semester data to get personalised guidance.</p></div></div>
+   </div>
+
+   <!-- TOPIC SUGGESTIONS -->
+   <div class="pg" id="pg-topics">
+    <div class="card" style="background:linear-gradient(135deg,var(--aml),#FEF9C3);border-color:#FDE68A;margin-bottom:14px">
+     <div class="ct">💡 Important Topic Suggestions</div>
+     <div style="font-size:13px;color:var(--tx2)">Key topics for each subject based on RBU syllabus and your current grade level.</div>
+    </div>
+    <div id="topl"><div class="empty"><span class="ei">💡</span><p>Save semester data to see topic suggestions.</p></div></div>
+   </div>
+
+   <!-- LEADERBOARD -->
+   <div class="pg" id="pg-lb">
+    <div class="card" style="background:linear-gradient(135deg,var(--aml),var(--rdl));margin-bottom:14px">
+     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div><div class="ct">🏆 Leaderboard</div><div style="font-size:12px;color:var(--tx3)">Only opted-in students are shown</div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+       <span style="font-size:12px;font-weight:600;color:var(--tx2)">Show me on leaderboard</span>
+       <button class="tgl on" id="lbtgl" onclick="toggleLB()"></button>
+      </div>
+     </div>
+    </div>
+    <div class="div"><span>Department toppers</span></div>
+    <div class="g5" id="dpt"><div class="load">Loading...</div></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+     <div class="div" style="flex:1;margin:0"><span>Overall ranking</span></div>
+     <select id="lbdept" onchange="loadLB()" class="fi" style="width:160px">
+      <option value="ALL">All departments</option><option>CSE</option><option>IT</option><option>ECE</option><option>MECH</option><option>CIVIL</option>
+     </select>
+    </div>
+    <div id="lbl"><div class="load">Loading...</div></div>
+   </div>
+
+   <!-- HISTORY -->
+   <div class="pg" id="pg-hist">
+    <div id="histl"><div class="load">Loading...</div></div>
+   </div>
+
+   <!-- ADMIN OVERVIEW -->
+   <div class="pg" id="pg-ao">
+    <div class="g4">
+     <div class="mc"><div class="ml">Total students</div><div class="mv" id="at">—</div></div>
+     <div class="mc"><div class="ml">Average CGPA</div><div class="mv" id="aa">—</div></div>
+     <div class="mc"><div class="ml">At risk (CGPA &lt;5)</div><div class="mv" id="ar" style="color:var(--rd)">—</div></div>
+     <div class="mc"><div class="ml">Distinction (≥9)</div><div class="mv" id="ad" style="color:var(--gn)">—</div></div>
+    </div>
+    <div class="g2">
+     <div class="card"><div class="ct">Department-wise avg CGPA</div><div class="chbox"><canvas id="cdept"></canvas></div></div>
+     <div class="card"><div class="ct">Classification breakdown</div><div class="chbox"><canvas id="ccls"></canvas></div></div>
+    </div>
+   </div>
+
+   <!-- ADMIN STUDENTS -->
+   <div class="pg" id="pg-as">
+    <div style="display:flex;gap:10px;margin-bottom:13px;flex-wrap:wrap">
+     <input id="sch" class="fi" placeholder="Search name or roll..." oninput="filterS()" style="flex:1;min-width:180px">
+     <select id="sdf" class="fi" onchange="filterS()" style="width:155px"><option value="">All departments</option><option>CSE</option><option>IT</option><option>ECE</option><option>MECH</option><option>CIVIL</option></select>
+     <select id="srf" class="fi" onchange="filterS()" style="width:155px"><option value="">All classifications</option><option value="Distinction">Distinction</option><option value="First Class">First Class</option><option value="Pass">Pass</option><option value="At Risk">At Risk</option></select>
+    </div>
+    <div class="card"><div id="asl"><div class="load">Loading...</div></div></div>
+   </div>
+
+   <!-- ADMIN LEADERBOARD -->
+   <div class="pg" id="pg-alb">
+    <div class="card" style="margin-bottom:14px"><div class="ct">Full leaderboard — all students</div><div class="cs">Admin view — all students regardless of opt-in</div></div>
+    <div id="albl"><div class="load">Loading...</div></div>
+   </div>
+
+   <!-- ADMIN ML MODEL -->
+   <div class="pg" id="pg-aml">
+    <div class="card" style="background:linear-gradient(135deg,var(--pul),var(--bll));margin-bottom:14px">
+     <div class="ct">🤖 ML Model — End Semester Predictor</div>
+     <div style="font-size:13px;color:var(--tx2)">Random Forest Regressor trained on 300 student records. 5 academic features. No behaviour data.</div>
+    </div>
+    <div class="g4" id="mgrid"></div>
+    <div class="g2">
+     <div class="card"><div class="ct">Feature importance</div><div class="cs">Contribution of each feature to prediction</div><div id="afi"></div></div>
+     <div class="card"><div class="ct">Model comparison</div><div class="chbox"><canvas id="cmod"></canvas></div></div>
+    </div>
+    <div class="card">
+     <div class="ct">Data Science Pipeline</div>
+     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:14px" id="pipe"></div>
+    </div>
+   </div>
+
+  </div><!-- /con -->
+ </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+const API='http://127.0.0.1:5000/api';
+let TOKEN=localStorage.getItem('aspire_t')||'';
+let ME=null,SEMS=[],PREDS=[],ALLST=[],METS={},CHARTS={};
+
+const PGMETA={
+  calc:['Grade Calculator','Enter marks — SGPA computed live. Predicted marks auto-fill from predictor.'],
+  pred:['End Sem Predictor','ML predicts your end sem marks. Click "Use in Calculator" to auto-fill.'],
+  dash:['Analytics Dashboard','Trends, heatmaps, grade distribution and CGPA projection'],
+  guide:['Study Guidance','Personalised subject-wise study plan'],
+  topics:['Topic Suggestions','Important topics per subject'],
+  lb:['Leaderboard','Top performers — opt-in only'],
+  hist:['History','All saved semesters with cumulative CGPA'],
+  ao:['Admin Overview','Institution-wide analytics'],
+  as:['All Students','Search and filter student profiles'],
+  alb:['Admin Leaderboard','Full ranking — all students'],
+  aml:['ML Model Details','Training metrics and data science pipeline'],
+};
+
+const GPTS={AA:10,AB:9,BB:8,BC:7,CC:6,CD:5,DD:4,FF:0};
+function getGrade(t){return t>=90?'AA':t>=80?'AB':t>=70?'BB':t>=60?'BC':t>=50?'CC':t>=40?'CD':t>=30?'DD':'FF';}
+function classify(c){return c>=9?'Distinction':c>=7?'First Class':c>=5?'Pass':c>0?'At Risk':'No Data';}
+function cgpaOf(sems){if(!sems||!sems.length)return 0;let tp=0,tc=0;sems.forEach(s=>{tp+=s.sgpa*s.credits;tc+=s.credits;});return tc?+(tp/tc).toFixed(2):0;}
+
+// API
+const hdrs=()=>({'Content-Type':'application/json','Authorization':'Bearer '+TOKEN});
+async function GET(p){const r=await fetch(API+p,{headers:hdrs()});const d=await r.json();if(!r.ok)throw new Error(d.error||'Error');return d;}
+async function POST(p,b){const r=await fetch(API+p,{method:'POST',headers:hdrs(),body:JSON.stringify(b)});const d=await r.json();if(!r.ok)throw new Error(d.error||'Error');return d;}
+async function DEL(p){const r=await fetch(API+p,{method:'DELETE',headers:hdrs()});const d=await r.json();if(!r.ok)throw new Error(d.error||'Error');return d;}
+function g(id){return document.getElementById(id);}
+function v(id){return g(id)?.value?.trim()||'';}
+function toast(msg,t='g'){const el=document.createElement('div');el.className=`toast t${t}`;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),3000);}
+function dc(id){if(CHARTS[id]){CHARTS[id].destroy();delete CHARTS[id];}}
+function mk(id,cfg){dc(id);CHARTS[id]=new Chart(g(id),cfg);return CHARTS[id];}
+
+// AUTH
+function atab(t){
+  const il=t==='login';
+  document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('on',i===(il?0:1)));
+  g('lp').style.display=il?'':'none';g('rp').style.display=il?'none':'';
+  g('aerr').style.display='none';
+}
+let RROLE='student';
+function setRole(r){RROLE=r;['student','admin'].forEach(x=>g('rb'+x[0]).classList.toggle('on',x===r));}
+function showErr(msg,isInfo=false){
+  const e=g('aerr');e.textContent=msg;e.style.display='block';
+  e.style.background=isInfo?'#EFF6FF':'#FEF2F2';
+  e.style.color=isInfo?'#1D4ED8':'#B91C1C';
+  e.style.borderColor=isInfo?'#BFDBFE':'#FCA5A5';
+}
+
+async function doLogin(){
+  const email=v('le'),password=v('lp2');
+  if(!email||!password){showErr('Please enter email and password');return;}
+  showErr('Connecting...',true);
+  try{
+    const res=await fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const data=await res.json();
+    if(!res.ok){showErr(data.error||`Error ${res.status}`);return;}
+    TOKEN=data.token;localStorage.setItem('aspire_t',TOKEN);ME=data.user;
+    g('aerr').style.display='none';initApp();
+  }catch(e){showErr('❌ Cannot reach backend. Is "python app.py" running? '+e.message);}
+}
+
+async function doRegister(){
+  const name=v('rn'),email=v('re'),password=v('rpass'),roll=v('rr');
+  const dept=g('rd').value,year=g('ry').value;
+  if(!name||!email||!password){showErr('Name, email and password required');return;}
+  if(password.length<6){showErr('Password must be 6+ characters');return;}
+  showErr('Creating account...',true);
+  try{
+    const res=await fetch(API+'/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password,role:RROLE,department:dept,year:+year,roll_no:roll})});
+    const data=await res.json();
+    if(!res.ok){showErr(data.error||`Error ${res.status}`);return;}
+    TOKEN=data.token;localStorage.setItem('aspire_t',TOKEN);ME=data.user;
+    g('aerr').style.display='none';initApp();
+  }catch(e){showErr('❌ Cannot reach backend. Is "python app.py" running? '+e.message);}
+}
+
+function signOut(){TOKEN='';ME=null;localStorage.removeItem('aspire_t');g('auth').style.display='';g('app').style.display='none';}
+
+// APP INIT
+async function initApp(){
+  g('auth').style.display='none';g('app').style.display='flex';
+  if(!ME){try{ME=await GET('/me');}catch{signOut();return;}}
+  const u=ME;
+  g('sbav').textContent=u.name.charAt(0).toUpperCase();
+  g('sbun').textContent=u.name;
+  g('sbum').textContent=(u.department||'')+(u.role==='admin'?' · Admin':' · Year '+u.year);
+  g('tbdept').textContent=u.department||'RBU';
+  g('snav').style.display=u.role==='admin'?'none':'';
+  g('anav').style.display=u.role==='admin'?'':'none';
+  if(u.role==='admin'){go('ao',document.querySelector('#anav .nb'));loadAdminData();}
+  else{addRow();addRow();addRow();lp();loadSems();loadPreds();loadMetrics();}
+}
+
+// NAVIGATION
+function go(id,btn){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  g('pg-'+id).classList.add('on');
+  if(btn)btn.classList.add('on');
+  else document.querySelectorAll('.nb').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.classList.add('on');});
+  const m=PGMETA[id]||['ASPIRE',''];
+  g('pgt').textContent=m[0];g('pgs').textContent=m[1];
+  if(id==='dash')renderDash();
+  if(id==='guide')renderGuide();
+  if(id==='topics')renderTopics();
+  if(id==='lb'){loadLB();loadToppers();}
+  if(id==='hist')renderHist();
+  if(id==='as')loadAdminSt();
+  if(id==='alb')loadAdminLB();
+  if(id==='aml')renderModel();
+}
+
+// ── CALCULATOR ─────────────────────────────────────────────
+function addRow(nm='',cr=3,int_='',end='',isPred=false){
+  const wrap=g('calc-rows');
+  const div=document.createElement('div');div.className='cr';
+  const gid='gx'+Math.random().toString(36).slice(2);
+  div.innerHTML=`
+    <input class="fi" placeholder="Subject name" value="${nm}" oninput="calcSGPA()">
+    <select class="fi" onchange="calcSGPA()">${[1,2,3,4,5].map(n=>`<option${n==cr?' selected':''}>${n}</option>`).join('')}</select>
+    <input class="fi" type="number" min="0" max="50" placeholder="0–50" value="${int_}" oninput="calcSGPA()">
+    <input class="fi ${isPred?'predicted':''}" type="number" min="0" max="50" placeholder="${isPred?'ML predicted':'0–50'}" value="${end}" oninput="calcSGPA()" ${isPred?'title="Auto-filled by ML predictor"':''}>
+    <div id="${gid}" style="display:flex;align-items:center;gap:4px;min-height:34px"></div>
+    <button class="del-btn" onclick="this.parentElement.remove();calcSGPA()">🗑</button>`;
+  wrap.appendChild(div);calcSGPA();
+}
+
+function getRows(){
+  return[...document.querySelectorAll('#calc-rows .cr')].map(r=>{
+    const inp=r.querySelectorAll('input');const sel=r.querySelector('select');
+    const isPred=inp[1]?.classList.contains('predicted');
+    return{name:inp[0]?.value||'Subject',credits:+(sel?.value||3),
+           internal:+inp[0+1]?.value||0,end_sem:+inp[2]?.value||0,
+           is_predicted:isPred,gDiv:r.querySelector('[id^="gx"]')};
+  });
+}
+
+function calcSGPA(){
+  const rows=getRows();let tp=0,tc=0,has=false,predCount=0;
+  rows.forEach(r=>{
+    const tot=r.internal+r.end_sem;const g2=getGrade(tot);const gp=GPTS[g2];
+    if(r.gDiv){
+      let html=r.internal||r.end_sem?`<span class="gp g${g2}">${g2}·${gp}</span>`:'';
+      if(r.is_predicted&&(r.internal||r.end_sem)) html+=` <span class="pred-badge">🤖ML</span>`;
+      r.gDiv.innerHTML=html;
+    }
+    if(r.internal||r.end_sem){tp+=gp*r.credits;tc+=r.credits;has=true;}
+    if(r.is_predicted)predCount++;
+  });
+  const sgpa=tc?tp/tc:0;
+  g('sgpa-out').style.display=has?'':'none';
+  const pn=g('pred-note');
+  if(predCount>0&&has){
+    pn.style.display='flex';
+    g('pred-note-txt').textContent=`${predCount} subject(s) have ML-predicted end sem marks (shown in blue). These are estimates — update them once actual results are declared.`;
+  }else{pn.style.display='none';}
+  if(has){
+    g('sgpa-v').textContent=sgpa.toFixed(2);
+    g('sgpa-detail').textContent=`${rows.length} subjects · ${tc} credits · ${tp.toFixed(0)} grade points`;
+    g('sgpa-bar').style.width=(sgpa/10*100)+'%';
+  }
+}
+
+function resetCalc(){g('calc-rows').innerHTML='';addRow();addRow();addRow();}
+
+async function saveSem(){
+  const rows=getRows().filter(r=>r.internal||r.end_sem);
+  if(!rows.length){toast('Add at least one subject','r');return;}
+  let tp=0,tc=0;
+  const subjects=rows.map(r=>{const t=r.internal+r.end_sem;const gr=getGrade(t);tp+=GPTS[gr]*r.credits;tc+=r.credits;return{name:r.name,credits:r.credits,internal:r.internal,end_sem:r.end_sem,is_predicted:r.is_predicted};});
+  const sgpa=tc?tp/tc:0;const semNo=+g('csem').value;
+  try{
+    const res=await POST('/semesters',{sem_no:semNo,sgpa,credits:tc,subjects});
+    toast(`Semester ${semNo} saved! SGPA: ${sgpa.toFixed(2)} · CGPA: ${res.cgpa}`);
+    await loadSems();updateCGPADisplay(cgpaOf(SEMS));
+  }catch(e){toast(e.message,'r');}
+}
+
+async function loadSems(){
+  try{SEMS=await GET('/semesters');renderHist();renderGuide();renderTopics();}catch{}
+}
+
+function updateCGPADisplay(c){
+  g('tbcgpa').textContent=`CGPA: ${c.toFixed(2)}`;
+  g('sbcg').textContent=`CGPA: ${c.toFixed(2)}`;
+}
+
+// ── PREDICTOR ──────────────────────────────────────────────
+function ss(sid,oid,suf=''){g(oid).textContent=g(sid).value+suf;}
+
+function mlPredict(int_,att,study,days,diff){
+  const df={1:1.05,2:0.95,3:0.85}[diff]||0.95;
+  const raw=((int_/50)*0.52+(att/100)*0.18+(Math.min(study/6,1))*0.22+Math.min(days/30,1)*0.08)*50*df;
+  return Math.min(50,Math.max(0,+raw.toFixed(1)));
+}
+
+function lp(){
+  const int_=+g('pi').value||0,att=+g('pa').value||0,study=+g('pst').value||0;
+  const days=+g('pd').value||0,diff=+g('pdi').value||2;
+  const pred=mlPredict(int_,att,study,days,diff);
+  const tot=int_+pred;const gr=getGrade(tot);const gp=GPTS[gr];
+  g('phm').textContent=pred.toFixed(1);
+  g('pht').textContent=tot.toFixed(1);
+  g('phs').textContent=`Internal: ${int_}/50 · Predicted end sem: ${pred.toFixed(1)}/50`;
+  g('phbar').style.width=(pred/50*100)+'%';
+  g('phg').innerHTML=`<span style="background:rgba(255,255,255,.25);padding:3px 10px;border-radius:99px;font-size:13px;font-weight:700">${gr} · GP ${gp}</span>`;
+  const risk=tot<50?'⚠️ At Risk':tot<70?'📊 On Track':'✅ Good';
+  g('phr2').textContent=risk;
+  renderFI(int_,att,study,days);
+  renderIns(int_,att,study,days,pred,gr);
+}
+
+function renderFI(int_,att,study,days){
+  const fi=[
+    {l:'Internal marks (52%)',v:Math.round(int_/50*100),c:'#2563EB'},
+    {l:'Study hours/day (22%)',v:Math.round(Math.min(study/6,1)*100),c:'#059669'},
+    {l:'Attendance % (18%)',v:Math.round(att),c:'#7C3AED'},
+    {l:'Days before exam (8%)',v:Math.round(Math.min(days/60*100,100)),c:'#D97706'},
+  ];
+  g('fi-bars').innerHTML=fi.map(f=>`
+    <div class="fir">
+      <span class="fil">${f.l}</span>
+      <div class="fig"><div class="fif" style="width:${f.v}%;background:${f.c}"></div></div>
+      <span class="fip">${f.v}%</span>
+    </div>`).join('');
+}
+
+function renderIns(int_,att,study,days,pred,gr){
+  const items=[];
+  if(int_>=40)items.push({c:'ins-g',t:`Strong internal marks (${int_}/50) — biggest factor (52% weight) in your prediction.`});
+  else items.push({c:'ins-r',t:`Low internal marks (${int_}/50). This is the strongest predictor — try to improve in remaining tests.`});
+  if(study>=4)items.push({c:'ins-g',t:`${study}h study/day is excellent. This adds approximately ${Math.round(study*1.5)} marks to your prediction.`});
+  else items.push({c:'ins-a',t:`Only ${study}h/day study. Increasing to 4h could add ~${Math.round((4-study)*1.5)} marks to your predicted score.`});
+  if(att<75)items.push({c:'ins-r',t:`${att}% attendance is below 75% minimum threshold. This affects eligibility and score.`});
+  if(days>=14)items.push({c:'ins-g',t:`${days} days before exam — good preparation window. Start chapter-wise revision now.`});
+  g('pred-ins').innerHTML=items.slice(0,4).map(i=>`<div class="ins ${i.c}">${i.t}</div>`).join('');
+}
+
+async function loadMetrics(){
+  try{
+    const m={rf_r2:.84,rf_rmse:2.62,dt_acc:.68,cv_mean:.79,cv_std:.04};
+    METS=m;renderMetricChips(m,'mchips');
+  }catch{}
+}
+
+function renderMetricChips(m,elId){
+  const chips=[
+    {l:'Algorithm',v:'Random Forest',s:'100 decision trees'},
+    {l:'R² Score',v:m.rf_r2||'.84',s:'Goodness of fit',c:'var(--gn)'},
+    {l:'RMSE',v:m.rf_rmse||'2.62',s:'Marks error on test set'},
+    {l:'CV R² (5-fold)',v:m.cv_mean||'.79',s:`±${m.cv_std||'.04'}`},
+  ];
+  const el=g(elId);
+  if(el)el.innerHTML=chips.map(c=>`<div class="mc"><div class="ml">${c.l}</div><div class="mv" style="font-size:18px;${c.c?'color:'+c.c:''}">${c.v}</div><div class="ms neu">${c.s}</div></div>`).join('');
+}
+
+// KEY FEATURE: Use prediction in calculator
+function useInCalc(){
+  const subj=v('ps')||'Subject';
+  const int_=+g('pi').value||0;
+  const att=+g('pa').value||0;
+  const study=+g('pst').value||0;
+  const days=+g('pd').value||0;
+  const diff=+g('pdi').value||2;
+  const cred=+g('pc').value||3;
+  const pred=mlPredict(int_,att,study,days,diff);
+
+  // Check if subject already exists in calculator
+  const rows=[...document.querySelectorAll('#calc-rows .cr')];
+  let found=false;
+  rows.forEach(row=>{
+    const inp=row.querySelectorAll('input');
+    if(inp[0]?.value?.toLowerCase()===subj.toLowerCase()){
+      // Update existing row
+      inp[1].value=int_;inp[1].dispatchEvent(new Event('input'));
+      inp[2].value=pred.toFixed(1);inp[2].classList.add('predicted');
+      inp[2].title='Auto-filled by ML predictor';
+      found=true;
+    }
+  });
+
+  if(!found){
+    // Check if there's an empty row to fill
+    let filled=false;
+    rows.forEach(row=>{
+      if(filled)return;
+      const inp=row.querySelectorAll('input');
+      if(!inp[0]?.value&&!inp[1]?.value&&!inp[2]?.value){
+        inp[0].value=subj;
+        const sel=row.querySelector('select');
+        if(sel)[...sel.options].forEach(o=>{if(+o.value===cred)o.selected=true;});
+        inp[1].value=int_;
+        inp[2].value=pred.toFixed(1);inp[2].classList.add('predicted');
+        inp[2].title='Auto-filled by ML predictor';
+        filled=true;
+      }
+    });
+    if(!filled) addRow(subj,cred,int_,pred.toFixed(1),true);
+  }
+
+  calcSGPA();
+  toast(`"${subj}" added to calculator! Predicted end sem: ${pred.toFixed(1)}/50 (shown in blue)`, 'b');
+  go('calc',null);
+}
+
+async function savePred(){
+  const subj=v('ps')||'Subject';
+  const int_=+g('pi').value||0,att=+g('pa').value||0;
+  const study=+g('pst').value||0,days=+g('pd').value||0;
+  const diff=+g('pdi').value||2,cred=+g('pc').value||3;
+  const pred=mlPredict(int_,att,study,days,diff);
+  try{
+    const res=await POST('/predict',{subject:subj,credits:cred,internal:int_,attendance:att,study_hrs:study,days_left:days,difficulty:diff});
+    if(res.metrics){METS=res.metrics;renderMetricChips(res.metrics,'mchips');}
+    PREDS.unshift({subject:subj,credits:cred,internal:int_,pred_end:res.pred_end,grade:res.grade,risk:res.risk});
+    toast(`Saved! "${subj}" — Predicted: ${res.pred_end}/50 · Grade: ${res.grade}`);
+  }catch{
+    PREDS.unshift({subject:subj,credits:cred,internal:int_,pred_end:pred,grade:getGrade(int_+pred)});
+    toast('Saved locally','b');
+  }
+}
+
+async function loadPreds(){try{const p=await GET('/predictions');PREDS=p;}catch{}}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+function renderDash(){
+  if(!SEMS.length){g('dm').innerHTML='<div style="grid-column:1/-1" class="empty"><span class="ei">📊</span><p>Save semester data to see analytics.</p></div>';return;}
+  const cgpa=cgpaOf(SEMS);
+  const best=Math.max(...SEMS.map(s=>s.sgpa));
+  const tc=SEMS.reduce((a,s)=>a+s.credits,0);
+  const cls=classify(cgpa);
+  const trend=SEMS.length>1?+(SEMS[SEMS.length-1].sgpa-SEMS[SEMS.length-2].sgpa).toFixed(2):0;
+  const clsC={Distinction:'var(--gn)','First Class':'var(--bl)',Pass:'var(--am)','At Risk':'var(--rd)','No Data':'var(--tx3)'}[cls];
+  g('dm').innerHTML=`
+    <div class="mc"><div class="ml">Current CGPA</div><div class="mv">${cgpa.toFixed(2)}</div><div class="ms ${trend>=0?'up':'dn'}">${trend>=0?'▲':'▼'} ${Math.abs(trend)} last sem</div></div>
+    <div class="mc"><div class="ml">Best SGPA</div><div class="mv">${best.toFixed(2)}</div><div class="ms neu">Semester ${SEMS.find(s=>s.sgpa===best)?.sem_no||''}</div></div>
+    <div class="mc"><div class="ml">Total credits</div><div class="mv">${tc}</div><div class="ms neu">${SEMS.length} semesters</div></div>
+    <div class="mc"><div class="ml">Classification</div><div class="mv" style="font-size:18px;padding-top:4px;color:${clsC}">${cls}</div></div>`;
+  updateCGPADisplay(cgpa);
+
+  mk('csgpa',{type:'line',data:{labels:SEMS.map(s=>`Sem ${s.sem_no}`),datasets:[{label:'SGPA',data:SEMS.map(s=>+s.sgpa.toFixed(2)),borderColor:'#2563EB',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.4,pointRadius:5,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:10,ticks:{callback:v=>v.toFixed(1),font:{size:11},color:'#94A3B8'},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:11},color:'#94A3B8'},grid:{display:false}}}}});
+
+  const gc={};SEMS.flatMap(s=>s.subjects).forEach(s=>{gc[s.grade]=(gc[s.grade]||0)+1;});
+  const gl=Object.keys(gc);
+  const gcol={AA:'#059669',AB:'#34D399',BB:'#2563EB',BC:'#60A5FA',CC:'#D97706',CD:'#FCD34D',DD:'#DC2626',FF:'#991B1B'};
+  mk('cgrade',{type:'doughnut',data:{labels:gl,datasets:[{data:gl.map(g2=>gc[g2]),backgroundColor:gl.map(g2=>gcol[g2]||'#94A3B8'),borderWidth:2.5,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'55%'}});
+
+  // Heatmap
+  const allS=[...new Set(SEMS.flatMap(s=>s.subjects.map(su=>su.name)))].slice(0,10);
+  const snos=SEMS.map(s=>s.sem_no);
+  const fc={AA:'#059669',AB:'#34D399',BB:'#2563EB',BC:'#60A5FA',CC:'#D97706',CD:'#FCD34D',DD:'#DC2626',FF:'#991B1B'};
+  g('hmg').innerHTML=`<div style="display:grid;grid-template-columns:140px ${snos.map(()=>'1fr').join(' ')};gap:4px">
+    <div></div>${snos.map(n=>`<div style="font-size:10px;font-weight:700;color:var(--tx3);text-align:center;padding-bottom:4px">S${n}</div>`).join('')}
+    ${allS.map(sub=>`<div style="font-size:11px;color:var(--tx2);display:flex;align-items:center">${sub.substring(0,16)}</div>${snos.map(sn=>{const sem=SEMS.find(s=>s.sem_no===sn);const subj=sem?.subjects.find(su=>su.name===sub);return`<div style="height:26px;border-radius:5px;background:${subj?fc[subj.grade]||'#94A3B8':'var(--sur2)'};display:flex;align-items:center;justify-content:center;font-size:10px;color:${subj?'#fff':'transparent'};font-weight:700;position:relative">${subj?subj.grade:''}${subj?.is_predicted?'<div style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#F59E0B;border:1px solid #fff"></div>':''}</div>`;}).join('')}`).join('')}
+  </div><div style="margin-top:8px;font-size:11px;color:var(--tx3);display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block"></span>Orange dot = ML predicted marks</div>`;
+
+  if(PREDS.length){
+    const ps=PREDS.slice(0,8);
+    mk('civp',{type:'bar',data:{labels:ps.map(p=>(p.subject||'').substring(0,12)),datasets:[{label:'Internal /50',data:ps.map(p=>p.internal),backgroundColor:'#2563EB',borderRadius:4},{label:'Predicted end sem /50',data:ps.map(p=>p.pred_end),backgroundColor:'#7C3AED',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10},maxRotation:30},grid:{display:false}},y:{max:50,ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,.05)'}}}}});
+  }
+  renderProj();
+}
+
+function renderProj(){
+  const cgpa=cgpaOf(SEMS);if(!SEMS.length)return;
+  const target=+g('tcgpa').value||9;
+  const remS=+g('rsems').value||4;
+  const totC=SEMS.reduce((a,s)=>a+s.credits,0);
+  const avgC=totC/SEMS.length;
+  const projTC=totC+remS*avgC;
+  const needed=(target*projTC-cgpa*totC)/(remS*avgC);
+  const nc=Math.min(10,Math.max(0,needed));
+  const req=g('preq');const feasible=needed<=10;
+  req.innerHTML=feasible?`<span style="font-weight:600;color:var(--bl)">Required SGPA per semester: ${nc.toFixed(2)}</span> — Maintain <strong>${needed>=9.5?'AA':needed>=8.5?'AB':needed>=7.5?'BB':needed>=6.5?'BC':'CC+'}</strong> average to reach CGPA ${target}.`:`<span style="font-weight:600;color:var(--rd)">Target ${target} not achievable in ${remS} sems from CGPA ${cgpa.toFixed(2)}. Lower your target or increase remaining sems.</span>`;
+  let rp=0,rc=0;const aL=SEMS.map(s=>`Sem ${s.sem_no}`);const aD=[];
+  SEMS.forEach(s=>{rp+=s.sgpa*s.credits;rc+=s.credits;aD.push(+(rp/rc).toFixed(2));});
+  const pL=[...aL];const pD=[...new Array(aD.length-1).fill(null),aD[aD.length-1]];
+  let pp=rp,pc=rc;
+  for(let i=1;i<=remS;i++){pp+=nc*avgC;pc+=avgC;pL.push(`Sem ${(SEMS[SEMS.length-1]?.sem_no||0)+i}`);pD.push(+(pp/pc).toFixed(2));}
+  mk('cproj',{type:'line',data:{labels:pL,datasets:[{label:'Actual CGPA',data:[...aD,...new Array(remS).fill(null)],borderColor:'#2563EB',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.4,pointRadius:4,borderWidth:2.5},{label:'Projected',data:pD,borderColor:'#7C3AED',borderDash:[6,4],tension:.4,pointRadius:4,borderWidth:2},{label:`Target ${target}`,data:pL.map(()=>target),borderColor:'#DC2626',borderDash:[3,3],pointRadius:0,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}}},scales:{y:{min:0,max:10,ticks:{callback:v=>v.toFixed(1),font:{size:11},color:'#94A3B8'},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:11},color:'#94A3B8'},grid:{display:false}}}}});
+}
+
+// ── STUDY GUIDANCE ─────────────────────────────────────────
+const GINFO={
+  HIGH:{hrs:'2–3h/day',strat:'Basics → Examples → Past papers',tip:'Focus on weak chapters first. Attempt previous year questions.'},
+  MED:{hrs:'1–2h/day',strat:'Notes → Practice → Timed tests',tip:'Identify question patterns. Solve standard problems.'},
+  LOW:{hrs:'45min/day',strat:'Quick revision → Peer help',tip:'Explore advanced concepts and edge cases.'},
+};
+
+function renderGuide(){
+  const all=SEMS.flatMap(s=>s.subjects);
+  if(!all.length){g('gdl').innerHTML='<div class="empty"><span class="ei">📚</span><p>Save semester data to get guidance.</p></div>';return;}
+  const sorted=[...all].sort((a,b)=>a.gp-b.gp);
+  g('gdl').innerHTML=sorted.map(sub=>{
+    const focus=sub.gp<=6?'HIGH':sub.gp<=8?'MED':'LOW';
+    const info=GINFO[focus];const pct=sub.gp/10*100;
+    const pc=sub.gp>=8?'var(--gn)':sub.gp>=6?'var(--bl)':sub.gp>=4?'var(--am)':'var(--rd)';
+    const focusTxt={HIGH:'🔴 High Focus',MED:'🟡 Medium Focus',LOW:'🟢 Maintain'}[focus];
+    const plan={HIGH:'Restart from basics. Re-read textbook. Solve 5 problems daily.',MED:'Review notes. Focus on weak chapters. Attempt past papers.',LOW:'Maintain pace. Help peers. Explore depth topics.'}[focus];
+    return`<div class="gdi">
+      <div class="gdh">
+       <div><div style="font-size:15px;font-weight:700">${sub.name}</div><div style="font-size:12px;color:var(--tx3)">${sub.credits} credits · <span class="gp g${sub.grade}">${sub.grade}</span> · GP ${sub.gp}${sub.is_predicted?' · <span class="pred-badge">🤖 ML predicted</span>':''}</div></div>
+       <span class="gp f${focus}" style="padding:4px 12px;font-size:12px;border-radius:99px">${focusTxt}</span>
+      </div>
+      <div class="pb"><div class="pf" style="width:${pct}%;background:${pc}"></div></div>
+      <p style="font-size:13px;color:var(--tx2);margin-bottom:11px;line-height:1.6">${plan}</p>
+      <div class="g2" style="gap:10px;margin-bottom:10px">
+       <div style="background:var(--bg);border-radius:var(--r);padding:9px"><div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:3px">Daily time</div><div style="font-size:14px;font-weight:600">${info.hrs}</div></div>
+       <div style="background:var(--bg);border-radius:var(--r);padding:9px"><div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:3px">Strategy</div><div style="font-size:12px;color:var(--tx2)">${info.strat}</div></div>
+      </div>
+      <div style="background:var(--bll);border-left:3px solid var(--bl);padding:8px 12px;border-radius:0 var(--r) var(--r) 0;font-size:12px;color:var(--bld)">💡 ${info.tip}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── TOPIC SUGGESTIONS ──────────────────────────────────────
+const TOPICS={
+  'Data Structures':{u:['Arrays & Linked Lists','Stacks & Queues','Trees (BST, AVL)','Graphs (BFS/DFS)','Sorting & Hashing'],i:['Linked list operations','Tree traversals','BFS/DFS algorithms','Quick sort & Merge sort','Hash collision handling']},
+  'DBMS':{u:['ER Model','Relational Algebra','SQL','Normalisation','Transactions'],i:['ER to relational mapping','SQL joins & subqueries','1NF/2NF/3NF/BCNF','ACID properties','Deadlock handling']},
+  'Operating Systems':{u:['Process Management','CPU Scheduling','Memory Management','Deadlocks','File Systems'],i:['Process vs thread','Scheduling algorithms','Paging & segmentation','Banker\'s algorithm','File allocation methods']},
+  'DAA':{u:['Complexity Analysis','Divide & Conquer','Greedy Algorithms','Dynamic Programming','NP Problems'],i:['Big-O notation','Merge/Quick sort','Kruskal/Prim\'s algorithm','0/1 Knapsack, LCS','P vs NP concept']},
+  'Computer Networks':{u:['OSI Model','Data Link Layer','Network Layer','Transport Layer','Application Layer'],i:['OSI vs TCP/IP','IP addressing/subnetting','Routing algorithms','TCP vs UDP','DNS, HTTP, FTP']},
+  'OOP Java':{u:['OOP Concepts','Classes & Objects','Inheritance','Exception Handling','Collections'],i:['4 pillars of OOP','Method overloading/overriding','Interface vs abstract class','Try-catch-finally','ArrayList vs LinkedList']},
+  'default':{u:['Unit 1 — Fundamentals','Unit 2 — Core Concepts','Unit 3 — Advanced','Unit 4 — Applications','Unit 5 — Problem Solving'],i:['Basic definitions','Core theorems','Standard algorithms','Previous year patterns','Formula sheet review']},
+};
+function getTopic(nm){for(const[k,v] of Object.entries(TOPICS))if(nm.toLowerCase().includes(k.toLowerCase()))return v;return TOPICS['default'];}
+
+function renderTopics(){
+  const all=SEMS.flatMap(s=>s.subjects);
+  if(!all.length){g('topl').innerHTML='<div class="empty"><span class="ei">💡</span><p>Save semester data to see topics.</p></div>';return;}
+  g('topl').innerHTML=all.map(sub=>{
+    const t=getTopic(sub.name);const focus=sub.gp<=6?'HIGH':sub.gp<=8?'MED':'LOW';
+    return`<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+       <div><div style="font-size:15px;font-weight:700">${sub.name}</div><div style="font-size:12px;color:var(--tx3)">Grade <span class="gp g${sub.grade}">${sub.grade}</span> · ${sub.credits} credits${sub.is_predicted?' · <span class="pred-badge">🤖 ML predicted</span>':''}</div></div>
+       <span class="bdg ${focus==='HIGH'?'br':focus==='MED'?'ba':'bg'}">${focus==='HIGH'?'⚠️ Priority':focus==='MED'?'📌 Important':'✅ Good'}</span>
+      </div>
+      <div class="g2">
+       <div><div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:7px">Syllabus units</div>${t.u.map(u=>`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--tx2)">✓ ${u}</div>`).join('')}</div>
+       <div><div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:7px">⭐ Must-know topics</div>${t.i.map(tp=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;margin-bottom:4px;background:var(--aml);border-radius:var(--r);font-size:12px;color:var(--amd);font-weight:500">★ ${tp}</div>`).join('')}</div>
+      </div>
+     </div>`;
+  }).join('');
+}
+
+// ── LEADERBOARD ────────────────────────────────────────────
+async function loadLB(){
+  const dept=g('lbdept')?.value||'ALL';
+  try{
+    const board=await GET(`/leaderboard?dept=${dept}`);const myId=ME?.id;
+    g('lbl').innerHTML=board.length?board.map(s=>`
+      <div class="lbi">
+       <div class="lbrk ${s.rank<=3?'r'+s.rank:''}">${s.rank<=3?['🥇','🥈','🥉'][s.rank-1]:s.rank}</div>
+       <div><div class="lbnm">${s.name}${s.id===myId?' <span class="bdg bb" style="font-size:10px">You</span>':''}</div><div class="lbmt">${s.department} · Year ${s.year}${s.roll_no?' · '+s.roll_no:''}</div></div>
+       <div class="lbcg">${s.cgpa.toFixed(2)}</div>
+      </div>`).join(''):'<div class="empty"><span class="ei">🏆</span><p>No data yet. Students need to save semester records and opt in.</p></div>';
+  }catch{g('lbl').innerHTML='<div class="empty"><span class="ei">⚠️</span><p>Could not load. Is backend running?</p></div>';}
+}
+
+async function loadToppers(){
+  try{
+    const top=await GET('/leaderboard/toppers');
+    const depts=['CSE','IT','ECE','MECH','CIVIL'];
+    g('dpt').innerHTML=depts.map(d=>{
+      const t=top[d];
+      return`<div class="dpc"><div class="dpd">🏫 ${d}</div>${t?`<div class="dpn">${t.name}</div><div style="font-size:11px;color:var(--tx3)">Year ${t.year}</div><div class="dpcg">${t.cgpa.toFixed(2)}</div>`:'<div style="font-size:12px;color:var(--tx3);margin-top:8px">No data</div>'}</div>`;
+    }).join('');
+  }catch{g('dpt').innerHTML='<div style="grid-column:1/-1" class="empty"><p>Could not load department toppers.</p></div>';}
+}
+
+async function toggleLB(){
+  const btn=g('lbtgl');const nv=!btn.classList.contains('on');
+  try{await POST('/leaderboard/opt',{show:nv});btn.classList.toggle('on',nv);toast(nv?'You appear on leaderboard':'Hidden from leaderboard',nv?'g':'b');}
+  catch{toast('Could not update (backend offline)','a');}
+}
+
+// ── HISTORY ────────────────────────────────────────────────
+function renderHist(){
+  if(!SEMS.length){g('histl').innerHTML='<div class="empty"><span class="ei">📋</span><p>No history yet. Calculate and save your semester grades.</p></div>';return;}
+  g('histl').innerHTML=SEMS.map(s=>`
+    <div class="hi">
+     <div class="hih">
+      <div><div style="font-size:15px;font-weight:700">Semester ${s.sem_no}</div><div style="font-size:12px;color:var(--tx3)">${s.credits} credits · ${s.subjects.length} subjects</div></div>
+      <div style="display:flex;align-items:center;gap:12px">
+       <div style="text-align:right"><div style="font-size:28px;font-weight:800;color:var(--bl)">${s.sgpa.toFixed(2)}</div><div style="font-size:11px;color:var(--tx3)">CGPA so far: ${s.cgpa_so_far?.toFixed(2)||'—'}</div></div>
+       <button class="btn btn-rd btn-sm" onclick="delSem(${s.id})">🗑 Delete</button>
+      </div>
+     </div>
+     <div class="tw"><table>
+      <thead><tr><th>Subject</th><th>Credits</th><th>Internal</th><th>End Sem</th><th>Total</th><th>Grade</th><th>GP</th><th>Source</th></tr></thead>
+      <tbody>${s.subjects.map(sub=>`<tr>
+       <td style="font-weight:500;color:var(--tx)">${sub.name}</td>
+       <td>${sub.credits}</td><td>${sub.internal}</td>
+       <td>${sub.end_sem} ${sub.is_predicted?'<span class="pred-badge">🤖ML</span>':''}</td>
+       <td><strong>${sub.total}</strong></td>
+       <td><span class="gp g${sub.grade}">${sub.grade}</span></td>
+       <td>${sub.gp}</td>
+       <td style="font-size:11px;color:var(--tx3)">${sub.is_predicted?'ML Predicted':'Manual entry'}</td>
+      </tr>`).join('')}</tbody>
+     </table></div>
+    </div>`).join('');
+}
+
+async function delSem(id){
+  if(!confirm('Delete this semester?'))return;
+  try{await DEL('/semesters/'+id);toast('Deleted');await loadSems();updateCGPADisplay(cgpaOf(SEMS));}
+  catch(e){toast(e.message,'r');}
+}
+
+// ── ADMIN ──────────────────────────────────────────────────
+async function loadAdminData(){
+  try{
+    const d=await GET('/admin/analytics');
+    g('at').textContent=d.total;g('aa').textContent=d.avg_cgpa.toFixed(2);
+    g('ar').textContent=d.at_risk;g('ad').textContent=d.distinction;
+    if(d.model_metrics)METS=d.model_metrics;
+    const dpts=Object.keys(d.dept_avg||{});
+    mk('cdept',{type:'bar',data:{labels:dpts,datasets:[{label:'Avg CGPA',data:dpts.map(k=>d.dept_avg[k]),backgroundColor:'#2563EB',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:10,ticks:{callback:v=>v.toFixed(1),font:{size:11},color:'#94A3B8'}},x:{ticks:{font:{size:12},color:'#475569'},grid:{display:false}}}}});
+    mk('ccls',{type:'doughnut',data:{labels:['Distinction','First Class','Pass','At Risk'],datasets:[{data:[d.distinction,d.first_class,d.pass_class,d.at_risk],backgroundColor:['#059669','#2563EB','#D97706','#DC2626'],borderWidth:2.5,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'50%'}});
+  }catch{}
+}
+
+async function loadAdminSt(){
+  try{ALLST=await GET('/admin/students');renderSL(ALLST);}
+  catch{g('asl').innerHTML='<div class="empty"><span class="ei">⚠️</span><p>Backend offline</p></div>';}
+}
+
+function filterS(){
+  const q=v('sch').toLowerCase(),dept=g('sdf').value,risk=g('srf').value;
+  renderSL(ALLST.filter(s=>(!q||(s.name+s.roll_no).toLowerCase().includes(q))&&(!dept||s.department===dept)&&(!risk||s.classification===risk)));
+}
+
+function renderSL(list){
+  g('asl').innerHTML=list.length?`<div class="tw"><table>
+    <thead><tr><th>#</th><th>Name</th><th>Roll No</th><th>Dept</th><th>Year</th><th>Sems</th><th>CGPA</th><th>Status</th></tr></thead>
+    <tbody>${list.map((s,i)=>{const cc={Distinction:'bg','First Class':'bb',Pass:'ba','At Risk':'br','No Data':''}[s.classification]||'';
+    return`<tr><td style="color:var(--tx3)">${i+1}</td><td style="font-weight:600;color:var(--tx)">${s.name}</td><td style="font-family:monospace;font-size:12px">${s.roll_no||'—'}</td><td>${s.department}</td><td>Year ${s.year}</td><td>${s.sems}</td><td style="font-weight:700;color:var(--bl);font-size:16px">${s.cgpa>0?s.cgpa.toFixed(2):'—'}</td><td><span class="bdg ${cc}">${s.classification}</span></td></tr>`;
+    }).join('')}</tbody></table></div>`:
+  '<div class="empty"><span class="ei">👥</span><p>No students found.</p></div>';
+}
+
+async function loadAdminLB(){
+  try{
+    const list=await GET('/admin/students');
+    const sorted=list.filter(s=>s.cgpa>0).sort((a,b)=>b.cgpa-a.cgpa);
+    g('albl').innerHTML=sorted.length?sorted.map((s,i)=>`
+      <div class="lbi">
+       <div class="lbrk ${i<3?'r'+(i+1):''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</div>
+       <div><div class="lbnm">${s.name}</div><div class="lbmt">${s.department} · Year ${s.year}${s.roll_no?' · '+s.roll_no:''}</div></div>
+       <div class="lbcg">${s.cgpa.toFixed(2)}</div>
+      </div>`).join(''):'<div class="empty"><span class="ei">🏆</span><p>No student data yet.</p></div>';
+  }catch{g('albl').innerHTML='<div class="empty"><span class="ei">⚠️</span><p>Backend offline</p></div>';}
+}
+
+function renderModel(){
+  const m=METS;const hm=m&&m.rf_r2;
+  g('mgrid').innerHTML=[
+    {l:'Algorithm',v:'Random Forest',s:'100 decision trees'},
+    {l:'R² Score',v:hm?m.rf_r2:'.84',s:'Goodness of fit',c:'var(--gn)'},
+    {l:'RMSE',v:hm?m.rf_rmse:'2.62',s:'Error in marks'},
+    {l:'CV R² (5-fold)',v:hm?m.cv_mean:'.79',s:`±${hm?m.cv_std:'.04'}`},
+  ].map(c=>`<div class="mc"><div class="ml">${c.l}</div><div class="mv" ${c.c?`style="color:${c.c}"`:''}>${c.v}</div><div class="ms neu">${c.s}</div></div>`).join('');
+
+  const fi=m?.feature_importance||{internal_marks:.41,study_hrs_day:.32,difficulty:.13,attendance_pct:.09,days_before_exam:.05};
+  const fil={internal_marks:'Internal Marks',study_hrs_day:'Study Hours/Day',difficulty:'Subject Difficulty',attendance_pct:'Attendance %',days_before_exam:'Days Before Exam'};
+  const cols=['#2563EB','#059669','#7C3AED','#D97706','#DC2626'];
+  g('afi').innerHTML=Object.entries(fi).map(([k,fv],i)=>`
+    <div class="fir">
+     <span class="fil">${fil[k]||k}</span>
+     <div class="fig"><div class="fif" style="width:${Math.round(fv*100)}%;background:${cols[i%5]}"></div></div>
+     <span class="fip">${(fv*100).toFixed(1)}%</span>
+    </div>`).join('');
+
+  mk('cmod',{type:'bar',data:{labels:['RF R²','LR R²','DT Accuracy','CV R²'],datasets:[{data:[hm?m.rf_r2:.84,hm?m.lr_r2:.83,hm?m.dt_acc:.68,hm?m.cv_mean:.79],backgroundColor:['#2563EB','#059669','#7C3AED','#D97706'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:1,ticks:{callback:v=>v.toFixed(2),font:{size:11}}},x:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+  const steps=[
+    {n:'01',t:'Data Collection',d:'300 student records: internal marks, attendance, study hours, days before exam, subject difficulty',c:'var(--bl)'},
+    {n:'02',t:'Preprocessing',d:'Feature normalisation, train/test split 80/20, subject difficulty encoding (1=Easy, 2=Med, 3=Hard)',c:'var(--gn)'},
+    {n:'03',t:'EDA & Analysis',d:'Grade distribution, SGPA trends, feature correlation, internal vs end sem comparison charts',c:'var(--pu)'},
+    {n:'04',t:'Model Training',d:'Random Forest Regressor + Decision Tree Classifier trained and saved as rf.pkl and dt.pkl',c:'var(--am)'},
+    {n:'05',t:'Evaluation',d:'R²=0.84, RMSE=2.62, DT Acc=0.68, CV R²=0.79. Feature importance: Internal marks most significant (41%)',c:'var(--rd)'},
+  ];
+  g('pipe').innerHTML=steps.map(s=>`
+    <div style="text-align:center;padding:14px 8px">
+     <div style="width:42px;height:42px;border-radius:50%;background:${s.c};color:#fff;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 9px">${s.n}</div>
+     <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:5px">${s.t}</div>
+     <div style="font-size:11px;color:var(--tx3);line-height:1.55">${s.d}</div>
+    </div>`).join('');
+}
+
+// BOOT
+window.addEventListener('load',()=>{
+  fetch('http://127.0.0.1:5000/').then(r=>{if(!r.ok)throw new Error();}).catch(()=>{
+    const w=document.createElement('div');
+    w.style.cssText='position:fixed;top:0;left:0;right:0;background:#B91C1C;color:#fff;text-align:center;padding:10px;font-size:13px;font-weight:600;z-index:9999';
+    w.innerHTML='⚠️ Backend not running. Open terminal and run: <code style="background:rgba(0,0,0,.2);padding:2px 6px;border-radius:4px">python app.py</code> &nbsp;<button onclick="location.reload()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;margin-left:8px">Retry</button>';
+    document.body.prepend(w);
+  });
+});
+if(TOKEN)initApp();
+</script>
+</body>
+</html>

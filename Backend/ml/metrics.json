@@ -1,0 +1,26 @@
+{
+  "rf_r2": 0.8117,
+  "rf_rmse": 3.1954,
+  "lr_r2": 0.8581,
+  "lr_rmse": 2.774,
+  "dt_acc": 0.7333,
+  "cv_mean": 0.7424,
+  "cv_std": 0.0424,
+  "feature_importance": {
+    "internal_marks": 0.4866,
+    "study_hrs_day": 0.1974,
+    "difficulty": 0.1226,
+    "attendance_pct": 0.1013,
+    "days_before_exam": 0.0921
+  },
+  "features": [
+    "internal_marks",
+    "attendance_pct",
+    "study_hrs_day",
+    "days_before_exam",
+    "difficulty"
+  ],
+  "train_size": 240,
+  "test_size": 60,
+  "total": 300
+}
