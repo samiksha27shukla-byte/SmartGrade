@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+backend/aspire.db
+backend/ml/model.pkl
+backend/ml/risk_model.pkl
+backend/ml/metrics.json
+.venv/

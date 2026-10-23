@@ -1,212 +1,137 @@
-# 🎓 SmartGrade (ASPIRE)
-> **Academic & Social Pattern Integrated Result Engine**  
-> An intelligent, machine-learning-powered web platform for predicting student performance, calculating SGPA/CGPA, analyzing grade trends, and delivering personalized study recommendations.
+# ASPIRE — Academic Score Prediction & Improvement Recommendation Engine
+
+A web app for RBU-style grading (AA/AB/BB… with credits). Students enter marks **once**; missing
+end-sem marks can be predicted by a machine-learning model and filled in automatically. It also
+plans the marks needed for a target grade, gives study guidance, suggests topics and books, and
+compares the student's CGPA with the department average. Admins see institution-wide analytics.
+
+> **Name note:** the earlier title expanded to "Academic & Social Pattern Integrated Result Engine".
+> Social-media / sleep / stress inputs were removed (they belong to ISPAS), so the acronym above is the
+> accurate one. Change it in `frontend/index.html` if your team prefers another.
 
 ---
 
-## 📌 Table of Contents
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-  - [Student Features](#student-features)
-  - [Administrator Features](#administrator-features)
-- [Machine Learning Engine](#-machine-learning-engine)
-- [Tech Stack](#-tech-stack)
-- [Project Directory Structure](#-project-directory-structure)
-- [Getting Started & Setup](#-getting-started--setup)
-  - [Prerequisites](#1-prerequisites)
-  - [Installation & Environment Setup](#2-installation--environment-setup)
-  - [Training the ML Model](#3-training-the-ml-model)
-  - [Running the Backend API](#4-running-the-backend-api)
-  - [Launching the Frontend UI](#5-launching-the-frontend-ui)
-- [Demo Credentials](#-demo-credentials)
-- [API Reference Summary](#-api-reference-summary)
-- [Grading System Matrix](#-grading-system-matrix)
-- [License](#-license)
+## 1. Run it (Windows)
 
----
+1. Install Python 3.9+ (tick **"Add Python to PATH"**).
+2. Double-click **`run_windows.bat`** (installs packages, then starts the server).
+   - or, in a terminal: `pip install -r requirements.txt` → `cd backend` → `python app.py`
+3. Open **http://127.0.0.1:5000** in your browser (the backend serves the frontend itself).
 
-## 🌟 Overview
+First start trains the model automatically (~10 s). Mac/Linux: `./run_mac_linux.sh`.
 
-**SmartGrade (ASPIRE)** is a full-stack academic analytics and performance prediction engine built for students and educational administrators. Built with Ramdeobaba University (RBU) evaluation guidelines in mind, SmartGrade leverages machine learning to forecast end-semester exam marks based on continuous academic inputs, study habits, attendance, and subject difficulty.
+Charts use Chart.js from a CDN, so the browser needs internet access.
 
-Instead of reactive grade tracking, SmartGrade empowers students to proactively target areas for improvement, calculate real-time SGPA/CGPA, simulate Target CGPA trajectories, and view personalized study guidance. For institutions, SmartGrade provides administrative insights into academic distribution, department performance, and early identification of at-risk students.
-
----
-
-## ✨ Key Features
-
-### 👨‍🎓 Student Features
-
-* **🤖 ML-Powered End-Sem Mark Predictor**: Predicts end-semester exam marks (out of 50) using trained Random Forest models based on 5 core academic indicators.
-* **🧮 Live SGPA & CGPA Grade Calculator**: Real-time calculation of SGPA with automatic credit point weighting based on the RBU 10-point grading scale (`AA` to `FF`).
-* **🔄 Seamless Predictor-to-Calculator Integration**: Auto-fills predicted marks directly into the Grade Calculator with visual badges indicating ML estimates.
-* **📊 Comprehensive Analytics Dashboard**:
-  * Multi-semester SGPA progression line charts.
-  * Subject performance heatmaps and grade distribution breakdown charts.
-  * Internal vs. ML-predicted score comparison.
-  * **Target CGPA Simulator**: Interactive tool to set a goal CGPA and calculate the required average SGPA across remaining semesters.
-* **📚 AI-Powered Study Guidance**: Automated subject-level focus recommendation engine categorizing subjects into *High*, *Medium*, or *Low* priority based on grade risk.
-* **💡 Syllabus Topic Suggestions**: High-yield topic recommendations tailored to subject area and current academic standing.
-* **🏆 Department Leaderboards**: Department-wise and overall student rankings with opt-in/opt-out privacy controls.
-* **📋 Historical Record Tracking**: View all saved past semesters with dynamic cumulative CGPA recalculations.
-
-### 🛡️ Administrator Features
-
-* **📊 Institution-Wide Analytics**: Overview of student counts, average CGPA across all departments, distinction ratios, and at-risk student tracking (CGPA < 5.0).
-* **👥 Student Search & Directory**: Searchable directory with filtering by department (CSE, IT, ECE, MECH, CIVIL) and classification (*Distinction*, *First Class*, *Pass*, *At Risk*).
-* **🤖 ML Pipeline & Model Monitoring**: Metrics dashboard showing model evaluation stats ($R^2$, RMSE, Cross-Validation, Feature Importance).
-
----
-
-## 🧠 Machine Learning Engine
-
-SmartGrade features a standalone data science training pipeline (`ml/train.py`) trained on student academic records.
-
-### Trained Models:
-1. **Random Forest Regressor** (`rf.pkl`): Primary regression model for predicting exact end-semester marks ($0 - 50$).
-2. **Decision Tree Classifier** (`dt.pkl`): Risk assessment classification model (*At Risk*, *On Track*, *Good*).
-3. **Linear Regression**: Baseline regression model for performance benchmark comparison.
-
-### Key Metrics Summary:
-| Metric | Random Forest Regressor | Linear Regression | Decision Tree Classifier |
-| :--- | :---: | :---: | :---: |
-| **$R^2$ Score** | `0.8117` | `0.8581` | — |
-| **RMSE** | `3.1954` | `2.7740` | — |
-| **Accuracy** | — | — | `73.33%` |
-| **5-Fold CV Mean $R^2$** | `0.7424 ± 0.0424` | — | — |
-
-### Feature Importance Weights:
-* **Internal Marks (out of 50)**: `48.66%`
-* **Daily Study Hours**: `19.74%`
-* **Subject Difficulty**: `12.26%`
-* **Attendance Percentage**: `10.13%`
-* **Days Before Exam**: `9.21%`
-
----
-
-## 🛠️ Tech Stack
-
-* **Backend Framework**: Python 3.x, Flask, Flask-SQLAlchemy (SQLite ORM), Flask-CORS
-* **Authentication**: JSON Web Tokens (PyJWT), Bcrypt password hashing
-* **Machine Learning & Data Science**: Scikit-Learn, Joblib, NumPy, Pandas
-* **Frontend**: HTML5, Vanilla CSS3 (Custom Design System, Flexbox, CSS Grid), Vanilla JavaScript ES6+
-* **Data Visualization**: Chart.js v4.4
-* **Database**: SQLite3 (`aspire.db`)
-
----
-
-## 📁 Project Directory Structure
-
+**Default admin:** `admin@rbu.ac.in` / `admin123` — change it before any real use:
 ```
-SmartGrade/
-└── Backend/
-    ├── app.py              # Flask API application server & routing logic
-    ├── aspire.db           # SQLite database storing users, semesters & predictions
-    ├── ml/
-    │   ├── train.py        # ML dataset generator & model training pipeline script
-    │   ├── dataset.csv     # Generated dataset (300 student records)
-    │   ├── rf.pkl          # Serialized Random Forest Regressor model
-    │   ├── dt.pkl          # Serialized Decision Tree Classifier model
-    │   └── metrics.json    # Model evaluation metrics & feature importances
-    └── Frontend/
-        └── index.html      # Responsive Single-Page Web Application UI & Client Logic
+set ASPIRE_ADMIN_PASSWORD=YourStrongPassword     (before the first run, Windows)
 ```
+Optional environment variables: `ASPIRE_SECRET_KEY`, `ASPIRE_ADMIN_EMAIL`, `ASPIRE_ADMIN_PASSWORD`, `ASPIRE_DB_PATH`.
+
+You never need to delete `aspire.db` after updates: new columns are added automatically on start.
 
 ---
 
-## 🚀 Getting Started & Setup
+## 2. Features
 
-### 1. Prerequisites
-Make sure you have **Python 3.8+** installed on your system.
+| Area | What it does |
+|---|---|
+| **Unified Grade Calculator** | One table for the whole semester. Each theory row has a **🤖** button → popup (attendance, study hours, days before exam, difficulty) → model predicts the end-sem marks → **Fill into calculator**. Predicted marks are shown in blue with a badge. Type a real mark any time and it replaces the prediction. |
+| **Theory + Lab** | Row type *Theory* (Internal /50 + End-sem /50) or *Lab* (one mark /50, scaled ×2 to /100). Labs are separate rows/subjects. |
+| **Target Planner** | Choose a grade (AA…DD) + difficulty → marks needed in the end-sem, minimum internal score, and study hours the model thinks are needed. |
+| **Study Guidance** | Rule-based, per subject (weakest first), incl. "N more marks would lift this to the next grade". Appears right after saving a semester. |
+| **Topics & Books** | Key topics and standard reference books for ~18 common subjects (beginner-friendly books first for weak subjects). |
+| **Dashboard** | CGPA/SGPA trend, grade mix, heatmap, internal vs end-sem, CGPA projection, **your CGPA vs your department average**. |
+| **Leaderboard** | Opt-in only (name, dept, CGPA — never marks). Department toppers. |
+| **History** | View, edit-in-calculator, delete saved semesters. |
+| **Auth** | Student register/login; admin login only (no admin registration). **Forgot password** via security question; students can set/change it under ⚙️ Account; admins can reset any student's password. |
+| **Admin** | Overview, student search/filter, full ranking, ML model page, password reset. |
 
-### 2. Installation & Environment Setup
-
-Navigate to the project directory:
-```bash
-cd SmartGrade/Backend
-```
-
-Install the required Python dependencies:
-```bash
-pip install flask flask-cors flask-sqlalchemy scikit-learn joblib pandas numpy pyjwt bcrypt
-```
-
-### 3. Training the ML Model
-Before running the server for the first time, execute the ML training pipeline to generate `rf.pkl`, `dt.pkl`, `metrics.json`, and `dataset.csv`:
-
-```bash
-python ml/train.py
-```
-
-### 4. Running the Backend API
-Start the Flask development backend server (runs on `http://127.0.0.1:5000`):
-
-```bash
-python app.py
-```
-
-*Note: On initial execution, `app.py` automatically initializes the database schema and seeds the default administrator account.*
-
-### 5. Launching the Frontend UI
-Simply open `Backend/Frontend/index.html` in any modern web browser, or serve it using a local static file server:
-
-```bash
-# Optional: Using Python built-in HTTP server
-python -m http.server 8000 --directory Frontend
-```
-Then navigate to `http://localhost:8000` in your browser.
+### Grading rules used
+`90+ AA(10) · 80+ AB(9) · 70+ BB(8) · 60+ BC(7) · 50+ CC(6) · 40+ CD(5) · 30+ DD(4) · else FF(0)`.
+SGPA = Σ(grade points × credits) / Σ credits, **computed on the server**, so a modified browser cannot fake it.
+**Assumption to confirm:** lab marks are graded as `lab/50 × 100`. If RBU combines lab and theory differently, change `save_semester()` in `backend/app.py` and `rowResult()` in `frontend/index.html`.
 
 ---
 
-## 🔑 Demo Credentials
+## 3. The ML part — read this before presenting
 
-### Administrator Account:
-* **Email**: `admin@rbu.ac.in`
-* **Password**: `admin123`
-
-### Student Account:
-You can self-register a new student account directly from the login/register screen in the web app interface.
-
----
-
-## 🔗 API Reference Summary
-
-| Endpoint | Method | Access | Description |
-| :--- | :---: | :---: | :--- |
-| `/api/register` | `POST` | Public | Register a new student account |
-| `/api/login` | `POST` | Public | Authenticate user & return JWT token |
-| `/api/me` | `GET` | Authenticated | Retrieve current user profile & CGPA details |
-| `/api/semesters` | `GET` / `POST` | Authenticated | Get or save semester marks and calculate SGPA |
-| `/api/semesters/<id>` | `DELETE` | Authenticated | Remove a saved semester record |
-| `/api/predict` | `POST` | Authenticated | Predict end-sem marks & assess academic risk |
-| `/api/predictions` | `GET` | Authenticated | List all past predictions for the user |
-| `/api/leaderboard` | `GET` | Authenticated | Retrieve student leaderboard (opt-in only) |
-| `/api/leaderboard/toppers`| `GET` | Authenticated | Retrieve top student per department |
-| `/api/leaderboard/opt` | `POST` | Authenticated | Toggle user opt-in status on leaderboard |
-| `/api/admin/students` | `GET` | Admin | List all registered students with CGPA |
-| `/api/admin/analytics` | `GET` | Admin | Overall institution analytics & ML metrics |
+* Inputs: internal marks, attendance %, study hours/day, days before exam, subject difficulty (1–3).
+  Output: end-sem marks /50. A decision-tree classifier also gives a risk class (At Risk / On Track / Good, based on the total).
+* `python ml/train.py` trains **Random Forest and Linear Regression**, compares them by 5-fold cross-validation, and deploys the better one.
+  Results are saved to `ml/metrics.json` and shown in the app (Admin → ML Model).
+* **The bundled dataset is simulated** (`ml/dataset_synthetic.csv`, 300 rows, generated by a formula plus noise).
+  Therefore the R²/RMSE values measure how well the model recovers *that formula*, **not** real-world accuracy.
+  Because the formula is close to linear, Linear Regression usually beats Random Forest on it — that is expected, and the app deploys whichever wins.
+  The app labels this clearly in the prediction popup and on the ML page.
+* **To make it a genuine data-science project, collect real records** (e.g. a Google Form to classmates: internal marks, attendance,
+  study hours, days before exam, difficulty, and the *actual* end-sem marks once known), save them using the columns in
+  `ml/real_data_template.csv` (delete the 3 example rows; at least 30 rows needed), then run:
+  ```
+  python ml/train.py --csv path\to\real_data.csv
+  ```
+  Restart `app.py`; the app then reports itself as trained on real data.
+* Inputs outside the trained range (e.g. internal < 20) trigger a "rough estimate" warning.
+* Predictions are estimates, not guarantees. Guidance text and study-time figures are rules of thumb, and topic/book lists are general
+  suggestions — check the RBU syllabus and prescribed textbooks.
 
 ---
 
-## 📊 Grading System Matrix
+## 4. Project layout
+```
+ASPIRE/
+├─ run_windows.bat / run_mac_linux.sh
+├─ requirements.txt
+├─ render.yaml                Render blueprint (one service for frontend + backend)
+├─ backend/
+│  ├─ app.py                  Flask API + SQLite (aspire.db is created on first run)
+│  └─ ml/
+│     ├─ train.py             training / evaluation (supports --csv)
+│     ├─ dataset_synthetic.csv   the simulated training data
+│     └─ real_data_template.csv  column layout for real data
+└─ frontend/index.html        single-page UI (served by Flask at /)
+```
+Generated on first run: `backend/aspire.db`, `backend/ml/model.pkl`, `risk_model.pkl`, `metrics.json`.
 
-SmartGrade implements the Ramdeobaba University (RBU) credit-based grade point system:
+### Database tables
+`user` (role, dept, year, roll no, leaderboard opt-in, hashed security answer) · `semester` (SGPA, credits) ·
+`subject` (kind theory/lab, internal, end-sem, predicted flag, total, grade) · `prediction` (log of every prediction).
+Passwords and security answers are stored as bcrypt hashes.
 
-| Total Marks (out of 100) | Grade | Grade Points ($GP$) | Description |
-| :---: | :---: | :---: | :--- |
-| $90 - 100$ | **AA** | `10.0` | Outstanding |
-| $80 - 89$ | **AB** | `9.0` | Excellent |
-| $70 - 79$ | **BB** | `8.0` | Very Good |
-| $60 - 69$ | **BC** | `7.0` | Good |
-| $50 - 59$ | **CC** | `6.0` | Above Average |
-| $40 - 49$ | **CD** | `5.0` | Average |
-| $30 - 39$ | **DD** | `4.0` | Below Average / Pass |
-| $< 30$ | **FF** | `0.0` | Fail |
-
-$$\text{SGPA} = \frac{\sum (\text{Course Credits} \times \text{Grade Points})}{\sum \text{Course Credits}}$$
+### Main API routes
+`POST /api/register, /login` · `GET /api/me, /config` · `POST /api/forgot/question, /forgot/reset, /me/security, /me/password` ·
+`GET/POST /api/semesters`, `DELETE /api/semesters/<id>` · `POST /api/predict, /reverse` · `GET /api/model/info, /dept/stats, /leaderboard, /leaderboard/toppers` ·
+`POST /api/leaderboard/opt` · admin: `GET /api/admin/students, /admin/analytics`, `POST /api/admin/reset-password`.
 
 ---
 
-## 📜 License
+## 5. Troubleshooting
+| Problem | Fix |
+|---|---|
+| `ModuleNotFoundError` | `pip install -r requirements.txt` (use the same Python you run `app.py` with) |
+| Page says backend not reachable | Start `python app.py` from the `backend` folder; keep that window open |
+| Port 5000 in use | Close the other app, or change `port=5000` at the bottom of `app.py` (and `API` in `index.html` if you open the file directly) |
+| Charts empty | The browser needs internet for the Chart.js CDN |
+| Want a clean slate | Stop the server, delete `backend/aspire.db` |
 
-This project is developed for educational and academic tracking purposes.
+## 6. Known limits (hackathon scope)
+Security-question recovery is weaker than email-link reset (answers are hashed and attempts are limited to 5 per 15 minutes, but a
+guessable answer is still guessable). Login has no rate limit. The Flask development server is used. SQLite is fine for a demo,
+not for a large deployment.
+
+## 7. Deploy on Render (frontend + backend as ONE service)
+
+Flask serves `frontend/index.html` at `/` and the API at `/api/*`, so one Render web service runs the whole project.
+
+1. Push this whole `ASPIRE/` folder to GitHub (keep `backend/` and `frontend/` together at the repo root).
+2. Render dashboard → **New → Blueprint** → pick the repo (it reads `render.yaml`).
+   Or **New → Web Service** manually with:
+   - Root Directory: *(leave empty)*
+   - Build Command: `pip install -r requirements.txt && python backend/ml/train.py`
+   - Start Command: `cd backend && gunicorn app:app --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT`
+3. Set env vars: `ASPIRE_ADMIN_PASSWORD` (required), `ASPIRE_SECRET_KEY` (auto-generated by the blueprint).
+4. Open the `https://<name>.onrender.com` URL.
+
+**Note:** Render's free plan has an ephemeral disk, so the SQLite database resets on every redeploy/restart. For persistent data,
+add a Render Disk (paid) mounted at e.g. `/var/data` and set `ASPIRE_DB_PATH=/var/data/aspire.db`, or move to Render PostgreSQL.
+
